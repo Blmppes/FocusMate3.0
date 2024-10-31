@@ -3,6 +3,9 @@ An interactive desktop application that promotes students' concentration
 
 FocusMate Setup Instructions
 
+Note:
+- Please turn off all firewall applications, or allow FocusMate to be installed.
+
 Step 1: Download:
 
 Go to the FocusMate release page on GitHub(https://github.com/Blmppes/FocusMate3.0/releases/tag/FocusMate).
