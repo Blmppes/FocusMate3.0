@@ -6,6 +6,16 @@ const popupFriendList = document.getElementById('popup-friend-list');
 const friendList = document.getElementById('friendList');
 const closePopupButton = document.getElementById('closePopup');
 
+document.getElementById('closefriendpopup').addEventListener('click', () => {
+    document.getElementById("popup-overlay").style.display = "none";
+    document.getElementById("popup-friend-list").style.display = "none";
+});
+
+document.getElementById("popup-overlay").addEventListener("click", function () {
+    document.getElementById("popup-overlay").style.display = "none";
+    document.getElementById("popup-friend-list").style.display = "none";
+});
+
 showFriendsButton.addEventListener('click', async () => {
     try {
         // Fetch friend list from Firebase
@@ -41,7 +51,8 @@ showFriendsButton.addEventListener('click', async () => {
         }
         
         // Show the pop-up
-        popupFriendList.style.display = 'block';
+        document.getElementById("popup-overlay").style.display = "block";
+        document.getElementById("popup-friend-list").style.display = "block";
     } catch (error) {
         console.error('Error loading friend list:', error);
         alert('Failed to load friend list.');
@@ -91,15 +102,16 @@ function hideEditControls() {
 
 function updOwnedBackgrounds(backgrounds) {
     const backgroundsList = document.getElementById("backgrounds-list");
+    backgroundsList.innerHTML = ''; // Clear any existing backgrounds
     backgrounds.forEach(function (background) {
-        const productDiv = document.createElement("div");
-        productDiv.classList.add("pro");
-        
-        productDiv.innerHTML = `
+        const backgroundDiv = document.createElement("div");
+        backgroundDiv.classList.add("background-item");
+
+        backgroundDiv.innerHTML = `
             <img src="${background.url}" alt="${background.name}">
             <h4>${background.name}</h4>
         `;
-        backgroundsList.appendChild(productDiv);
+        backgroundsList.appendChild(backgroundDiv);
     });
 }
 

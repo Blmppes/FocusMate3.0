@@ -14,15 +14,36 @@
             border: 2px solid #ddd;
         }
         #owned-backgrounds {
+            margin-top: 40px;
+        }
+        #backgrounds-list {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 20px;
+            justify-content: center;
         }
         .background-item {
-            width: 100px;
-            height: 100px;
-            border-radius: 8px;
-            background-size: cover;
+            width: 120px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            transition: transform 0.2s;
+            text-align: center;
+            background-color: #fff;
+        }
+        .background-item:hover {
+            transform: scale(1.05);
+        }
+        .background-item img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+        .background-item h4 {
+            font-size: 0.9rem;
+            margin: 8px 0;
+            font-weight: 600;
+            color: #333;
         }
         #popup-friend-list {
             display: none;
@@ -30,7 +51,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: #fff;
+            background-color: #fff;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -48,15 +69,21 @@
             padding: 0;
             max-height: 200px;
             overflow-y: auto;
+            margin-bottom: 15px;
         }
         #popup-friend-list li {
             padding: 8px;
             border-bottom: 1px solid #eee;
         }
-        #popup-friend-list button {
-            display: block;
+        #popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            margin-top: 10px;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
         }
     </style>
 </head>
@@ -116,20 +143,25 @@
             </div>
             <button id="logOut" class="btn btn-danger mt-3">Log Out</button>
             <!-- New Section for Owned Backgrounds -->
-            <div id="owned-backgrounds" class="mt-4">
+            <div id="owned-backgrounds">
                 <h2>Owned Backgrounds</h2>
-                <div id="backgrounds-list" class="d-flex flex-wrap"></div>
-            </div>   
+                <div id="backgrounds-list"></div>
+            </div>
         </div>
     </div>
 
     <!-- Friend List Pop-up -->
+    <div id="popup-overlay"></div>
     <div id="popup-friend-list">
         <h2>Your Friends</h2>
         <ul id="friendList"></ul>
-        <button id="closePopup" class="btn btn-secondary">Close</button>
+        <button id="closefriendpopup" class="btn btn-secondary">Close</button>
     </div>
 
+    <div id="popup" style="display: none;">
+        <p id="message"></p>
+        <button id="closePopup">Close</button>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="profile_renderer.js"></script>
 </body>
