@@ -54,8 +54,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
 });
 
 // Socket.IO connection
-// const socket = io('https://peaceful-lowlands-03981-18d6f1e5d4e3.herokuapp.com/');
-const socket = io('http://localhost:3000');
+const socket = io('https://peaceful-lowlands-03981-18d6f1e5d4e3.herokuapp.com/');
+// const socket = io('http://localhost:3000');
 
 // Listen for the connect event
 socket.on('connect', () => {
@@ -70,7 +70,9 @@ socket.on('connect_error', (error) => {
 contextBridge.exposeInMainWorld('socketAPI', {
     emit: (event, data) => socket.emit(event, data), // Explicit emit function
     on: (event, callback) => socket.on(event, callback), // Explicit on function
+    once: (event, callback) => socket.once(event, callback), // Add the once function
 });
+
 
 // Listen for authentication state changes
 let userIdPromise;
@@ -84,19 +86,5 @@ ipcRenderer.on('auth:stateChanged', (event, userId) => {
 });
 
 window.dispatchEvent(new CustomEvent('authStateChanged', { detail: userIdPromise }));
-
-// let invitePromise;
-
-// ipcRenderer.on('firestore:docChanged', (event, data) => {
-//     console.log("invite:", data);
-    
-//     if (!invitePromise) {
-//         invitePromise = Promise.resolve(data); // Resolve with userId
-//     }
-// });
-
-// window.dispatchEvent(new CustomEvent('firestore:docChanged', { detail: invitePromise }));
-
-
 
 console.log("Preload script loaded.");

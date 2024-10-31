@@ -295,8 +295,10 @@ ipcMain.handle('auth:getcurrentuserid', async () => {
 
 ipcMain.handle('firebase:checkroomexists', async (event, roomName) => {
     try {
+        console.log(roomName);
         const roomsSnapshot = await getDocs(collection(db, "rooms"));
         const roomExists = roomsSnapshot.docs.some(doc => doc.data().name === roomName);
+        console.log(roomExists);
         return roomExists;
     } catch (error) {
         console.error(error);

@@ -19,19 +19,6 @@ let userData;
 let coins = 0;
 let isInteractingWithFileInput = false;
 
-function showPopup(message) {
-    document.getElementById('message').textContent = message;
-    document.getElementById('popup').style.display = 'block';
-}
-
-function hidePopup(){
-    document.getElementById('popup').style.display = 'none';
-}
-
-document.getElementById('closePopup').addEventListener('click', () => {
-    hidePopup();
-});
-
 // Initialize user data
 async function initializeUserData() {
     try {
@@ -63,13 +50,10 @@ const joinRoom = async () => {
 };
 
 let fileDialogOpen = false; // Flag to track if the file dialog is open
-let userLeaving = false; // Flag to track if the user is leaving
-let focusLossTimer; // Timer to handle focus loss logic
 
 // Event listener to detect when the file input gains focus
 fileInput.addEventListener('focus', () => {
     fileDialogOpen = true; // Mark the file dialog as open
-    userLeaving = false; // Reset leaving state
     console.log('File dialog is about to open:', fileDialogOpen);
 });
 
@@ -88,47 +72,19 @@ fileInput.addEventListener('blur', () => {
 });
 
 // Handle the app-blurred event
+// Handle focus loss for kicking out the user
 window.electronAPI.receive('app-blurred', () => {
     console.log('App lost focus.');
-    // Set the userLeaving flag to true
-    userLeaving = true; 
-
-    // Start a timer to check if the app stays blurred
-    focusLossTimer = setTimeout(() => {
-        // If the dialog is not open, we proceed to kick out
-        if (!fileDialogOpen) {
-            console.log('Kicking user out due to prolonged focus loss...');
-            window.socketAPI.emit('leaveRoom', { roomName: roomId, username: userData.name });
-            document.location.href = 'index.html';
-        }
-    }, 1000); // 1 second; adjust as needed
+    if (!fileDialogOpen) {
+        console.log('Kicking user out due to prolonged focus loss...');
+        handleLeaveRoom();
+    }
 });
 
 // Detect when the app gains focus again
 window.electronAPI.receive('app-focused', () => {
     console.log('App regained focus');
-    // Clear the timer if the app gains focus
-    clearTimeout(focusLossTimer);
-    
-    // Reset dialog state if it was not opened
-    if (!fileDialogOpen) {
-        fileDialogOpen = false; // Ensure consistent state
-    }
 });
-
-// Create a timer to periodically check the focus state
-setInterval(() => {
-    if (userLeaving) {
-        const isAppFocused = document.hasFocus(); // Check if the app is currently focused
-
-        // If the app is focused again, reset the leaving state
-        if (isAppFocused) {
-            userLeaving = false;
-            console.log("User is back in the app.");
-        }
-    }
-}, 1000); // Check every second
-
 
 // Load messages from Firestore for the room
 async function loadMessages() {
@@ -152,7 +108,8 @@ async function sendMessage() {
         userId: userId,
         userName: userData.name,
         timestamp: Date.now(),
-        linkToFile: null // Initialize as null
+        linkToFile: null, // Initialize as null,
+        roomName: roomId
     };
 
     try {
@@ -214,6 +171,7 @@ function displayMessage({ text, userName, timestamp, linkToFile }) {
 
 // Listen for new messages in real-time
 window.socketAPI.on('newMessage', (message) => {
+    console.log("new message: ", message);
     displayMessage(message);
 });
 
@@ -232,6 +190,7 @@ const loadUserBackgrounds = async () => {
                 roomBody.style.backgroundImage = `url(${background.url})`;
                 const modal = bootstrap.Modal.getInstance(document.getElementById('backgroundModal'));
                 modal.hide();
+                window.socketAPI.emit('changeBack', {roomName: roomId, url: background.url});
                 console.log(`Background changed to: ${background.url}`);
             });
             backgroundOptions.appendChild(backgroundItem);
@@ -240,6 +199,11 @@ const loadUserBackgrounds = async () => {
         console.error("Error fetching backgrounds: ", error);
     }
 };
+
+window.socketAPI.on('changeBack', async (url) => {
+    console.log(url);
+    roomBody.style.backgroundImage = `url(${url})`;
+});
 
 // Function to update coins in Firebase
 async function updateCoinsInFirebase() {
@@ -275,10 +239,16 @@ window.socketAPI.on('userConnected', async (packet) => {
     showPopup(`User ${packet.name} has just entered the room!`);
 });
 
+window.socketAPI.on('setbackbtn', async (ishostbro) =>{
+    if(!ishostbro){
+        document.getElementById('changeBackgroundBtn').style.display = 'none';
+    }
+});
+
 // Handle the userDisconnected event
 window.socketAPI.on('userDisconnected', async (packet) => {
     console.log(`User disconnected: ${packet.userId}`);
-    showPopup(`User ${packet.name} left the room!`);
+    window.location.href = 'index.html';
 });
 
 // Update the participants modal with the current users
@@ -331,7 +301,7 @@ const inviteFriend = async (friendId, friendName) => {
         
         // Create invitation in Firestore
         await window.firebaseAPI.addDoc('invites', {
-            sender: userId,
+            sender: userData.name,
             receiver: friendId,
             roomId: roomId,
             roomName: roomLabel.innerHTML,
@@ -347,7 +317,6 @@ const inviteFriend = async (friendId, friendName) => {
 
 const showInvitationPopup = (roomName, sender, roomId) => {
     console.log(`Received invitation from ${sender} to join room ${roomName}`);
-    
 
     const acceptButton = document.createElement('button');
     acceptButton.textContent = 'Accept';
@@ -361,13 +330,16 @@ const showInvitationPopup = (roomName, sender, roomId) => {
 
     // Append buttons to the popup
     const popupContent = document.getElementById('popup');
-    popupContent.innerHTML = ''; // Clear previous content
+    
     popupContent.appendChild(acceptButton);
     popupContent.appendChild(denyButton);
+    // Make sure to check if showPopup is functioning properly
     showPopup(`You have been invited to join ${roomName} by ${sender}.`);
 };
 
-window.electronAPI.receive('firestore:docChanged', (roomName, sender, receiver, roomId) => {
+window.electronAPI.receive('firestore:docChanged', async (roomName, sender, receiver, roomId) => {
+    
+    const userId = await window.firebaseAPI.getCurrentUserId();
     console.log(receiver, userId);
     if (receiver == userId) {
         showInvitationPopup(roomName, sender, roomId);
@@ -379,23 +351,45 @@ const acceptInvite = (roomId) => {
     window.location.href = `room.html?id=${roomId}`; // Redirect user to the invited room
 };
 
+function showPopup(message) {
+    document.getElementById('message').textContent = message;
+    document.getElementById('popup').style.display = 'block';
+}
+
+function hidePopup(){
+    document.getElementById('popup').style.display = 'none';
+}
+
+document.getElementById('closePopup').addEventListener('click', () => {
+    hidePopup();
+});
+
 window.socketAPI.on('endnow', () => {
+    console.log("ending session..");
     window.location.href = 'index.html';
 });
 
-// Leave room event listener
-leaveButton.addEventListener('click', async () => {
+// Shared function to handle leave logic
+async function handleLeaveRoom() {
+    console.log('User is leaving room:', roomId);
+
+    // Emit the leaveRoom signal
     await window.socketAPI.emit('leaveRoom', { roomName: roomId, username: userData.name });
-    window.location.href = 'index.html'; // Redirect to the home page
-});
-
-window.socketAPI.on('hostLeaving', async (roomName) => {
-    if (await window.firebaseAPI.checkRoomExists(roomName)) { // Check if the room still exists
-        // Perform the necessary actions to delete the room from the client-side collection
-        
-        await window.firebaseAPI.deleteRoom(roomName);
-    } else {
-        console.log(`Room ${roomName} has already been deleted.`);
+}
+window.socketAPI.on('hostLeaving', async (packet) => {
+    console.log("hostLeaving signal received for:", packet.roomName);
+    if(packet.ishost){
+        if (await window.firebaseAPI.checkRoomExists(packet.roomName)) {
+            console.log("Deleting room:", packet.roomName);
+            await window.firebaseAPI.deleteRoom(packet.roomName);
+        } else {
+            console.log(`Room ${packet.roomName} has already been deleted.`);
+        }
     }
+    document.location.href = 'index.html';
 });
 
+// Handle user-initiated leave via button
+leaveButton.addEventListener('click', () => {
+    handleLeaveRoom();
+});

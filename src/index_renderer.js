@@ -125,10 +125,9 @@ const showInvitationPopup = (roomName, sender, roomId) => {
 
     // Append buttons to the popup
     const popupContent = document.getElementById('popup');
-    popupContent.innerHTML = ''; // Clear previous content
+    
     popupContent.appendChild(acceptButton);
     popupContent.appendChild(denyButton);
-    
     // Make sure to check if showPopup is functioning properly
     showPopup(`You have been invited to join ${roomName} by ${sender}.`);
 };
@@ -146,19 +145,6 @@ const acceptInvite = (roomId) => {
     console.log(`Joining room ${roomId} after accepting invite.`);
     window.location.href = `room.html?id=${roomId}`; // Redirect user to the invited room
 };
-
-// function showPopup(message) {
-//     const messageElement = document.getElementById('message');
-//     const popupElement = document.getElementById('popup');
-
-//     if (!messageElement || !popupElement) {
-//         console.error("Popup elements not found.");
-//         return;
-//     }
-
-//     messageElement.textContent = message;
-//     popupElement.style.display = 'block';
-// }
 
 function showPopup(message) {
     document.getElementById('message').textContent = message;
