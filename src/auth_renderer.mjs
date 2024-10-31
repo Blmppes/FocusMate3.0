@@ -29,7 +29,10 @@ signupButton.addEventListener('click', async () => {
     const name = document.getElementById('signupName').value; 
     const email = document.getElementById('signupEmail').value;
     const password = document.getElementById('signupPassword').value;
-
+    if(password.length <= 6){
+        showPopup("Password must contains more than 6 characters, please try again.");
+        return;
+    }
     try {
         const user = await window.firebaseAPI.createUserWithEmailAndPassword(email, password);
         await window.firebaseAPI.setDoc('users', user.uid, {

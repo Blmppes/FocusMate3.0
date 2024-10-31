@@ -5,6 +5,7 @@ FocusMate Setup Instructions
 
 Note:
 - Please turn off all firewall applications, or allow FocusMate to be installed.
+- Our current version only accepts english in the chat box, other languages' uses may result in being kicked out of the room.
 
 Step 1: Download:
 - Go to the FocusMate release page on GitHub(https://github.com/Blmppes/FocusMate3.0/releases/tag/FocusMate).
