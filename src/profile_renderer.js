@@ -78,6 +78,11 @@ async function checkUserStatus() {
             // Check if the current user is viewing their own profile
             if (urlUserId && urlUserId !== currentUserId) {
                 hideEditControls(); // Hide controls if viewing another user's profile
+                const userData = await window.firebaseAPI.getUserData(currentUserId);
+                const friends = userData.friends;
+                if(friends.includes(urlUserId)){
+                    document.getElementById('addFriend').style.display = 'none';
+                }
             }else{
                 document.getElementById('addFriend').style.display = 'none';
             }

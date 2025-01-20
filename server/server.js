@@ -76,6 +76,16 @@ io.on('connection', (socket) => {
     
 });
 
+app.post('/reset-rooms', (req, res) => {
+    // Reset the rooms list
+    rooms = {};  // Reset the rooms object
+    console.log('Rooms list has been reset.');
+  
+    // Respond with a success message
+    res.status(200).send('Rooms list has been reset.');
+  });
+  
+
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });

@@ -42,7 +42,8 @@ signupButton.addEventListener('click', async () => {
             balance: 0,
             friends: [],
             pendingreq: [],
-            sendingreq: []
+            sendingreq: [],
+            tasks: []
         });
         // Inform the user to check their email for verification
         showPopup("A verification email has been sent. Please verify your email before logging in.");

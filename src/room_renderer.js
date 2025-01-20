@@ -17,7 +17,9 @@ const roomId = urlParams.get('id');
 let userId;
 let userData;
 let coins = 0;
+let ori_coins = 0;
 let isInteractingWithFileInput = false;
+const date = new Date();
 
 // Initialize user data
 async function initializeUserData() {
@@ -89,7 +91,7 @@ window.electronAPI.receive('app-focused', () => {
 // Load messages from Firestore for the room
 async function loadMessages() {
     try {
-        const messages = await window.firebaseAPI.getRoomMessages(roomId);
+        const messages = await window.firebaseAPI.getCollectionData(roomId);
         messages.forEach(displayMessage); // Display each message
     } catch (error) {
         console.error("Error loading messages:", error);
@@ -206,13 +208,13 @@ window.socketAPI.on('changeBack', async (url) => {
 });
 
 // Function to update coins in Firebase
-async function updateCoinsInFirebase() {
-    try {
-        await window.firebaseAPI.setDoc('users', userId, { balance: coins });
-    } catch (error) {
-        console.error("Error updating coins in Firebase: ", error);
-    }
-}
+// async function updateCoinsInFirebase() {
+//     try {
+        
+//     } catch (error) {
+//         console.error("Error updating coins in Firebase: ", error);
+//     }
+// }
 
 // Start the progress bar
 async function startProgressBar() {
@@ -223,9 +225,9 @@ async function startProgressBar() {
 
         if (progress >= 100) {
             coins += 1; // Increment coins
+            ori_coins += 1;
             progress = 0; // Reset progress
             progressBar.style.width = '0%'; // Reset bar width
-            updateCoinsInFirebase(); // Update Firebase without await to prevent blocking
         }
     }, 1000); // Update every second
 }
@@ -373,6 +375,21 @@ window.socketAPI.on('endnow', () => {
 async function handleLeaveRoom() {
     console.log('User is leaving room:', roomId);
 
+    //Update coins
+    await window.firebaseAPI.setDoc('users', userId, { balance: coins });
+    const focusLogs = await window.firebaseAPI.getDoc('focusLogs', userId);
+    const dateKey = date.toISOString().split('T')[0];
+    const crrData = focusLogs[dateKey]?.focusTimeMinutes || 0;
+    const data = {
+        [dateKey]: {
+            focusTimeMinutes: crrData + ori_coins*10/60,
+            date: dateKey, // Optional: storing as string for easier queries
+        },
+    };
+
+    // Merge data into the Firestore document
+    await window.firebaseAPI.setDoc('focusLogs', userId, data);
+
     // Emit the leaveRoom signal
     await window.socketAPI.emit('leaveRoom', { roomName: roomId, username: userData.name });
 }
@@ -382,6 +399,7 @@ window.socketAPI.on('hostLeaving', async (packet) => {
         if (await window.firebaseAPI.checkRoomExists(packet.roomName)) {
             console.log("Deleting room:", packet.roomName);
             await window.firebaseAPI.deleteRoom(packet.roomName);
+            await window.firebaseAPI.deleteFolder(`messages/${packet.roomName}`);
         } else {
             console.log(`Room ${packet.roomName} has already been deleted.`);
         }

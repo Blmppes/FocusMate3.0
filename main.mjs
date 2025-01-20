@@ -6,7 +6,7 @@ import { onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWith
 import { initializeApp } from 'firebase/app';
 import { getAuth, browserLocalPersistence, setPersistence } from 'firebase/auth';
 import { getFirestore, doc, setDoc, addDoc, getDoc, getDocs, updateDoc, collection, arrayUnion, arrayRemove, deleteDoc, onSnapshot } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes, getDownloadURL, listAll } from 'firebase/storage';
+import { getStorage, ref, uploadBytes, getDownloadURL, listAll, deleteObject } from 'firebase/storage';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -156,8 +156,8 @@ ipcMain.handle('firestore:getDoc', async (event, collectionName, docId) => {
         const data = (await getDoc(docRef)).data();
         return data;
     } catch (error) {
-        console.error('Error setting document:', error);
-        throw new Error('Failed to set document. Please try again.');
+        console.error('Error getting document:', error);
+        throw new Error('Failed to getting document. Please try again.');
     }
 });
 
@@ -440,9 +440,9 @@ ipcMain.handle('firebase:deleteRoom', async (event, roomId) => {
     }
 });
 
-ipcMain.handle('firebase:getRoomMessages', async (event, roomId) => {
+ipcMain.handle('firebase:getCollectionData', async (event, colname) => {
     try {
-        const roomCollection = collection(db, roomId);
+        const roomCollection = collection(db, colname);
         const querySnapshot = await getDocs(roomCollection);
         return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
@@ -473,5 +473,25 @@ ipcMain.handle('firebase:unfriend', async (event, userId, friendId) => {
     } catch (error) {
         console.error(`Error unfriending`);
         throw new Error(`Failed to unfriend ${friendId}`);
+    }
+});
+
+ipcMain.handle('firebase:deleteFolder', async (event, folder_path) => {
+    try {
+        const subfolderRef = ref(storage, folder_path);
+        const listResult = await listAll(subfolderRef); // List all files under the subfolder
+
+        // Loop through each file and delete
+        for (const item of listResult.items) {
+            try {
+                await deleteObject(item); // Delete the file
+                console.log(`Deleted: ${item.fullPath}`);
+                } catch (error) {
+                console.error(`Error deleting file ${item.fullPath}:`, error);
+            }
+        }
+    } catch (error) {
+        console.error(`Error deleting folder`);
+        throw new Error(`Failed to delete folder ${folder_path}`);
     }
 });

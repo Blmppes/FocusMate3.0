@@ -42,9 +42,10 @@ contextBridge.exposeInMainWorld('firebaseAPI', {
     acceptReq: (senderId, receiverId) => ipcRenderer.invoke('firebase:acceptReq', senderId, receiverId),
     removeNotification: (senderId, receiverId) => ipcRenderer.invoke('firebase:removeNotification', senderId, receiverId),
     deleteRoom: (roomId) => ipcRenderer.invoke('firebase:deleteRoom', roomId),
-    getRoomMessages: (roomId) => ipcRenderer.invoke('firebase:getRoomMessages', roomId),
+    getCollectionData: (roomId) => ipcRenderer.invoke('firebase:getCollectionData', roomId),
     addRoomMessage: (roomId, message) => ipcRenderer.invoke('firebase:addRoomMessage', roomId, message),
-    unfriend: (userId, friendId) => ipcRenderer.invoke('firebase:unfriend', userId, friendId)
+    unfriend: (userId, friendId) => ipcRenderer.invoke('firebase:unfriend', userId, friendId),
+    deleteFolder: (folder_path) => ipcRenderer.invoke('firebase:deleteFolder', folder_path),
 });
 
 // Expose IPC methods

@@ -1,0 +1,48 @@
+body {
+  background-color: #f8f9fa;
+  font-family: 'Arial', sans-serif;
+}
+
+h1 {
+  font-weight: bold;
+}
+
+#taskList .list-group-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  padding: 15px;
+  background: linear-gradient(45deg, #e3f2fd, #bbdefb);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#taskList .list-group-item .task-name {
+  font-size: 18px;
+  font-weight: 500;
+  color: #0277bd;
+}
+
+#taskList .list-group-item .task-duration {
+  font-size: 16px;
+  font-weight: 400;
+  color: #01579b;
+}
+
+#taskList .btn-group {
+  gap: 10px;
+}
+
+.modal-content {
+  border-radius: 15px;
+}
+
+.list-group-item.dragging {
+    opacity: 0.5;
+  }
+  
+  .list-group-item.drop-target {
+    border: 2px dashed #0277bd;
+  }
+  
